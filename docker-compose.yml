@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgres://countersign:countersign@db:5432/countersign
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: countersign
+      POSTGRES_PASSWORD: countersign
+      POSTGRES_DB: countersign
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U countersign"]
+      interval: 3s
+      retries: 20
+volumes:
+  pgdata:
